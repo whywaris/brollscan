@@ -43,10 +43,8 @@ export async function POST(request: NextRequest) {
     // 4. Call Claude to analyze the script
     const analyzedScenes = await analyzeScript(text);
 
-    // 5. Save script to DB
-    // 5. Save script to DB
-    let script = null;
-    let scenes = null;
+    let script: { id: string; [key: string]: unknown } | null = null;
+    let scenes: unknown = null;
 
     try {
       const { data, error: scriptError } = await supabase
@@ -63,11 +61,11 @@ export async function POST(request: NextRequest) {
       if (scriptError || !data) {
         throw new Error(scriptError?.message || 'Script save returned no data');
       }
-      script = data;
+      script = data as { id: string; [key: string]: unknown };
 
       // 6. Save each scene to DB
       const sceneInserts = analyzedScenes.map((scene) => ({
-        script_id: script.id,
+        script_id: script!.id,
         scene_order: scene.scene_order,
         text_content: scene.text_content,
         keywords: scene.keywords,

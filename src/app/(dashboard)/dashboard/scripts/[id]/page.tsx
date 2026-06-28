@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Scene, BrollResult } from '@/types';
+import { Scene, BrollResult, Script, FindBrollResponse } from '@/types';
 
 interface SceneWithResults extends Scene {
   results: BrollResult[];
@@ -30,7 +30,7 @@ export default function ScriptResultsPage() {
   async function loadScript() {
     const supabase = createClient();
     let loadedScript = null;
-    let loadedScenes = [];
+    let loadedScenes: Scene[] = [];
 
     // Try Supabase first
     try {
@@ -55,7 +55,7 @@ export default function ScriptResultsPage() {
     if (!loadedScript) {
       try {
         const localScripts = JSON.parse(localStorage.getItem('brollscan_scripts') || '[]');
-        loadedScript = localScripts.find((s: any) => s.id === scriptId) || null;
+        loadedScript = localScripts.find((s: Script) => s.id === scriptId) || null;
       } catch {}
     }
     if (loadedScenes.length === 0) {
@@ -71,20 +71,20 @@ export default function ScriptResultsPage() {
     if (loadedScenes && loadedScenes.length > 0) {
       // Load existing broll results
       const sceneIds = loadedScenes.map((s) => s.id);
-      let brollData = [];
-      let savedData = [];
+      let brollData: BrollResult[] = [];
+      let savedData: { broll_result_id: string }[] = [];
       try {
         const { data } = await supabase
           .from('broll_results')
           .select('*')
           .in('scene_id', sceneIds)
           .order('relevance_score', { ascending: false });
-        brollData = data || [];
+        brollData = (data as BrollResult[]) || [];
 
         const { data: saved } = await supabase
           .from('saved_clips')
           .select('broll_result_id');
-        savedData = saved || [];
+        savedData = (saved as { broll_result_id: string }[]) || [];
       } catch {
         // Fallback: load broll data and saved clips from localStorage
         try {
@@ -94,12 +94,12 @@ export default function ScriptResultsPage() {
       }
 
       if (savedData) {
-        setSavedClips(new Set(savedData.map((s: any) => s.broll_result_id || s)));
+        setSavedClips(new Set(savedData.map((s: { broll_result_id: string }) => s.broll_result_id)));
       }
 
       const scenesWithResults: SceneWithResults[] = loadedScenes.map((scene) => ({
         ...scene,
-        results: (brollData || []).filter((b: any) => b.scene_id === scene.id),
+        results: (brollData || []).filter((b: BrollResult) => b.scene_id === scene.id),
       }));
 
       setScenes(scenesWithResults);
@@ -133,7 +133,7 @@ export default function ScriptResultsPage() {
         throw new Error(data.error || 'Failed to find B-roll');
       }
 
-      const data = await res.json();
+      const data: FindBrollResponse = await res.json();
 
       // Update scenes with results
       setScenes((prev) =>
@@ -151,8 +151,8 @@ export default function ScriptResultsPage() {
 
       // Save broll results to localStorage
       try {
-        const allBrollResults: any[] = [];
-        data.scenes.forEach((s: any) => {
+        const allBrollResults: BrollResult[] = [];
+        data.scenes.forEach((s) => {
           allBrollResults.push(...s.results);
         });
         localStorage.setItem(`brollscan_broll_${scriptId}`, JSON.stringify(allBrollResults));

@@ -32,7 +32,7 @@ export default function DashboardPage() {
     } catch {
       try {
         const localScripts = JSON.parse(localStorage.getItem('brollscan_scripts') || '[]');
-        localScripts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        localScripts.sort((a: Script, b: Script) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         dataToSet = localScripts;
       } catch {}
     }
@@ -59,7 +59,7 @@ export default function DashboardPage() {
     } catch {}
     try {
       const localScripts = JSON.parse(localStorage.getItem('brollscan_scripts') || '[]');
-      const updated = localScripts.filter((s: any) => s.id !== id);
+      const updated = localScripts.filter((s: Script) => s.id !== id);
       localStorage.setItem('brollscan_scripts', JSON.stringify(updated));
       localStorage.removeItem(`brollscan_scenes_${id}`);
       localStorage.removeItem(`brollscan_broll_${id}`);

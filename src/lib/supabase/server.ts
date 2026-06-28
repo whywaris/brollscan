@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { User, Session } from '@supabase/supabase-js'
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -36,11 +37,11 @@ export async function createClient() {
   };
 
   client.auth.getUser = async () => {
-    return { data: { user: mockUser }, error: null } as any;
+    return { data: { user: mockUser as unknown as User }, error: null };
   };
 
   client.auth.getSession = async () => {
-    return { data: { session: { user: mockUser, access_token: 'mock-token' } }, error: null } as any;
+    return { data: { session: { user: mockUser as unknown as User, access_token: 'mock-token' } as unknown as Session }, error: null };
   };
 
   return client;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { searchBrollForScene } from '@/lib/stock-footage';
+import { Scene } from '@/types';
 
 export async function POST(
   request: NextRequest,
@@ -23,7 +24,7 @@ export async function POST(
 
     const { id: scriptId } = await params;
 
-    let scenes: any[] = [];
+    let scenes: Scene[] = [];
 
     // Check if client passed the scenes directly (useful for local storage fallback)
     try {
